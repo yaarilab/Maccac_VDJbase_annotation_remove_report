@@ -550,7 +550,7 @@ input:
  set val(name),file(airrFile) from g0_12_outputFileTSV0_g0_19
 
 output:
- set val("passed"), file("${outfile}"+"passed.tsv") optional true  into g0_19_outputFileTSV0_g0_27, g0_19_outputFileTSV0_g_52, g0_19_outputFileTSV0_g_68
+ set val("passed"), file("${outfile}"+"passed.tsv") optional true  into g0_19_outputFileTSV0_g0_27, g0_19_outputFileTSV0_g_52, g0_19_outputFileTSV0_g_68, g0_19_outputFileTSV0_g_15
  set val("failed"), file("${outfile}"+"failed*") optional true  into g0_19_outputFileTSV1_g0_27
 
 script:
@@ -1420,6 +1420,7 @@ if(airrFile.getName().endsWith(".tsv")){
 
 }
 
+g0_19_outputFileTSV0_g_15= g0_19_outputFileTSV0_g_15.ifEmpty([""]) 
 g_2_germlineFastaFile_g_15= g_2_germlineFastaFile_g_15.ifEmpty([""]) 
 g11_19_outputFileTSV0_g_15= g11_19_outputFileTSV0_g_15.ifEmpty([""]) 
 g_8_germlineFastaFile1_g_15= g_8_germlineFastaFile1_g_15.ifEmpty([""]) 
@@ -1428,6 +1429,7 @@ g_8_germlineFastaFile1_g_15= g_8_germlineFastaFile1_g_15.ifEmpty([""])
 process airr_seq_for_clone {
 
 input:
+ set val("airrFile"), file(airrSeq) from g0_19_outputFileTSV0_g_15
  set val("v_germ"), file(v_germline_file) from g_2_germlineFastaFile_g_15
  set val("airrFileNovel"), file(airrSeqNovel) from g11_19_outputFileTSV0_g_15
  set val("v_novel"), file(v_novel_germline_file) from g_8_germlineFastaFile1_g_15
