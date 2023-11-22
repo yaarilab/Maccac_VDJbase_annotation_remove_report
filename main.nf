@@ -193,8 +193,8 @@ ch_empty_file_3 = file("$baseDir/.emptyfiles/NO_FILE_3", hidden:true)
 ch_empty_file_4 = file("$baseDir/.emptyfiles/NO_FILE_4", hidden:true)
 
 Channel.fromPath(params.v_germline_file, type: 'any').map{ file -> tuple(file.baseName, file) }.into{g_2_germlineFastaFile_g_8;g_2_germlineFastaFile_g_15;g_2_germlineFastaFile_g_37;g_2_germlineFastaFile_g_52;g_2_germlineFastaFile_g_68;g_2_germlineFastaFile_g0_22;g_2_germlineFastaFile_g0_12;g_2_germlineFastaFile_g11_22;g_2_germlineFastaFile_g11_12;g_2_germlineFastaFile_g21_22;g_2_germlineFastaFile_g21_12}
-Channel.fromPath(params.d_germline, type: 'any').map{ file -> tuple(file.baseName, file) }.into{g_3_germlineFastaFile_g_30;g_3_germlineFastaFile_g14_0;g_3_germlineFastaFile_g14_1;g_3_germlineFastaFile_g0_16;g_3_germlineFastaFile_g0_12;g_3_germlineFastaFile_g11_16;g_3_germlineFastaFile_g11_12}
-Channel.fromPath(params.j_germline, type: 'any').map{ file -> tuple(file.baseName, file) }.into{g_4_germlineFastaFile_g_31;g_4_germlineFastaFile_g14_0;g_4_germlineFastaFile_g14_1;g_4_germlineFastaFile_g0_17;g_4_germlineFastaFile_g0_12;g_4_germlineFastaFile_g11_17;g_4_germlineFastaFile_g11_12}
+Channel.fromPath(params.d_germline, type: 'any').map{ file -> tuple(file.baseName, file) }.into{g_3_germlineFastaFile_g_30;g_3_germlineFastaFile_g0_16;g_3_germlineFastaFile_g0_12;g_3_germlineFastaFile_g11_16;g_3_germlineFastaFile_g11_12;g_3_germlineFastaFile_g14_0;g_3_germlineFastaFile_g14_1}
+Channel.fromPath(params.j_germline, type: 'any').map{ file -> tuple(file.baseName, file) }.into{g_4_germlineFastaFile_g_31;g_4_germlineFastaFile_g0_17;g_4_germlineFastaFile_g0_12;g_4_germlineFastaFile_g11_17;g_4_germlineFastaFile_g11_12;g_4_germlineFastaFile_g14_0;g_4_germlineFastaFile_g14_1}
 g_38_outputFileTxt_g0_9 = file(params.auxiliary_data, type: 'any')
 g_38_outputFileTxt_g11_9 = file(params.auxiliary_data, type: 'any')
 g_38_outputFileTxt_g21_9 = file(params.auxiliary_data, type: 'any')
@@ -1435,7 +1435,7 @@ input:
  set val("v_novel"), file(v_novel_germline_file) from g_8_germlineFastaFile1_g_15
 
 output:
- set val(airr_name), file(airrSeqClone)  into g_15_outputFileTSV0_g14_0, g_15_outputFileTSV0_g14_9
+ set val(airr_name), file(airrSeqClone)  into g_15_outputFileTSV0_g14_0
  set val(germ_name), file(germlineClone)  into g_15_germlineFastaFile1_g_29, g_15_germlineFastaFile1_g14_0, g_15_germlineFastaFile1_g14_1
 
 script: 
@@ -1466,7 +1466,7 @@ input:
  set val(name3), file(j_germline_file) from g_4_germlineFastaFile_g14_0
 
 output:
- set val(name),file("*_germ-pass.tsv")  into g14_0_outputFileTSV0_g14_2, g14_0_outputFileTSV0_g14_13
+ set val(name),file("*_germ-pass.tsv")  into g14_0_outputFileTSV0_g14_2
 
 script:
 failed = params.Clone_AIRRseq_First_CreateGermlines.failed
@@ -1509,114 +1509,6 @@ CreateGermlines.py \
 
 
 
-}
-
-
-process Clone_AIRRseq_plotMutability_report {
-
-input:
- set val(name), file(ger_df) from g14_0_outputFileTSV0_g14_13
-
-output:
- file "*.rmd"  into g14_13_rMarkdown0_g14_14
-
-shell:
-
-readArray_ger_df = ger_df.toString().split(' ')[0]
-
-'''
-#!/usr/bin/env perl
-
-
-my $script = <<'EOF';
-
-
-```{r echo=FALSE,message = FALSE}
-
-library(alakazam)
-library(shazam)
-library(dplyr)
-
-
-df <-read.csv("!{readArray_ger_df}", sep="\t")
-
-
-```
-
-
-
-### all redas
-
-```{r echo=FALSE,message = FALSE,warnings =FALSE}
-
-sub_model <- createSubstitutionMatrix(df, model="s", sequenceColumn="sequence_alignment",
-germlineColumn="germline_alignment_d_mask",
-vCallColumn="v_call")
-mut_model <- createMutabilityMatrix(df, sub_model, model="s", 
-sequenceColumn="sequence_alignment",
-germlineColumn="germline_alignment_d_mask",
-vCallColumn="v_call")
-
-ext_model <- extendMutabilityMatrix(mut_model)
-
-plotMutability(ext_model, c("A","C"))
-plotMutability(ext_model, c("G","T"))
-
-```
-
-
-### single asigmant 
-
-```{r echo=FALSE,message = FALSE,warnings =FALSE}
-
-df_filter <- df %>% filter(!grepl(",", v_call))
-
-
-sub_model <- createSubstitutionMatrix(df_filter, model="s", sequenceColumn="sequence_alignment",
-germlineColumn="germline_alignment_d_mask",
-vCallColumn="v_call")
-mut_model <- createMutabilityMatrix(df_filter, sub_model, model="s", 
-sequenceColumn="sequence_alignment",
-germlineColumn="germline_alignment_d_mask",
-vCallColumn="v_call")
-
-ext_model <- extendMutabilityMatrix(mut_model)
-
-plotMutability(ext_model, c("A","C"))
-plotMutability(ext_model, c("G","T"))
-
-```
-
-
-
-EOF
-	
-open OUT, ">mutability_plot_!{name}.rmd";
-print OUT $script;
-close OUT;
-
-'''
-
-}
-
-
-process Clone_AIRRseq_render_Mutability_report {
-
-publishDir params.outdir, mode: 'copy', saveAs: {filename -> if (filename =~ /.*.html$/) "mutability_plot/$filename"}
-input:
- file rmk from g14_13_rMarkdown0_g14_14
-
-output:
- file "*.html"  into g14_14_outputFileHTML00
- file "*csv" optional true  into g14_14_csvFile11
-
-"""
-
-#!/usr/bin/env Rscript 
-
-rmarkdown::render("${rmk}", clean=TRUE, output_format="html_document", output_dir=".")
-
-"""
 }
 
 
@@ -1749,19 +1641,16 @@ CreateGermlines.py \
 
 process Clone_AIRRseq_single_clone_representative {
 
-publishDir params.outdir, mode: 'copy', saveAs: {filename -> if (filename =~ /.*.pdf$/) "clone_report/$filename"}
 input:
  set val(name),file(airrFile) from g14_1_outputFileTSV0_g14_9
- set val(name1),file(source_airrFile) from g_15_outputFileTSV0_g14_9
 
 output:
  set val(outname),file(outfile)  into g14_9_outputFileTSV0_g_29, g14_9_outputFileTSV0_g_30, g14_9_outputFileTSV0_g_31
- file "*.pdf" optional true  into g14_9_outputFilePdf11
- set val(name), file("*txt")  into g14_9_logFile22
 
 script:
 outname = airrFile.toString() - '.tsv' +"_clone_rep-passed"
 outfile = outname + ".tsv"
+
 
 """
 #!/usr/bin/env Rscript
@@ -1825,12 +1714,9 @@ int allele_diff(std::vector<std::string> germs) {
 ## libraries
 require(dplyr)
 library(Rcpp)
-library(ggplot2)
 sourceCpp(code = src)
 
 data <- readr::read_tsv("${airrFile}")
-
-source_data <- readr::read_tsv("${source_airrFile}")
 
 # calculating mutation between IMGT sequence and the germline sequence, selecting a single sequence to each clone with the fewest mutations
 data[["mut"]] <- sapply(1:nrow(data),function(j){
@@ -1839,60 +1725,10 @@ data[["mut"]] <- sapply(1:nrow(data),function(j){
 })
 # filter to the fewest mutations
 data <- data %>% dplyr::group_by(clone_id) %>% 
-			dplyr::mutate(clone_size = n())
-
-data_report <- data %>% dplyr::rowwise() %>%
-			dplyr::mutate(v_gene = alakazam::getGene(v_call, strip_d = FALSE)) %>%
-			dplyr::group_by(v_gene, clone_id, clone_size) %>% dplyr::slice(1)
-
-print(head(data_report))
-
-p1 <- ggplot(data_report, aes(clone_size)) +
-	geom_histogram(bins = 100) +
-	facet_wrap(.~v_gene, ncol = 4)
-
-ggsave("clone_distribution_by_v_call.pdf", p1, width = 12, height = 25)
-
-max_clone_sizes <- data_report %>%
-  group_by(v_gene) %>%
-  summarize(max_clone_size = max(clone_size))
-
-# Create a list of plots
-plots <- lapply(seq(nrow(max_clone_sizes)), function(i) {
-  ggplot(data_report %>% filter(v_gene == max_clone_sizes[i,"v_gene"]), aes(clone_size)) +
-    geom_histogram(bins = max_clone_sizes[i,"max_clone_size"]) +
-    ggtitle(paste("v_gene =", max_clone_sizes[i,"v_gene"]))
-})
-
-# Combine the list of plots into a single plot
-library(gridExtra)
-final_plot <- do.call(grid.arrange, plots)
-
-
-ggsave("new_clone_distribution_by_v_call.pdf", final_plot, width = 30, height = 40)
-
-
-
-data <- data %>% dplyr::group_by(clone_id) %>% dplyr::slice(which.min(mut))
+			dplyr::mutate(clone_size = n()) %>%
+			dplyr::group_by(clone_id) %>% dplyr::slice(which.min(mut))
 cat(paste0('Note ', nrow(data),' sequences after selecting single representative'))
 readr::write_tsv(data, file = "${outfile}")
-
-x <- nrow(source_data)-nrow(data)
-
-lines <- c(
-    paste("START>", "After picking clonal representatives"),
-    paste("PASS>", nrow(data)),
-    paste("FAIL>", nrow(source_data)-nrow(data)),
-    paste("END>", "After picking clonal representatives"),
-    "",
-    ""
-  )
-
-
-file_path <- paste("${outname}","output.txt", sep="-")
-
-cat(lines, sep = "\n", file = file_path, append = TRUE)
-
 """
 }
 
